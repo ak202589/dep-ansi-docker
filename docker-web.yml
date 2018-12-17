@@ -1,0 +1,42 @@
+---
+- name: Deployment of web server on Docker using Dockerfile 
+  hosts: webserver 
+  tasks: 
+ 
+    - name: Install required packages
+      yum: 
+        name: 
+          - docker
+          - mariadb
+        state: latest 
+
+    - name: start Docker service
+      service: 
+        name: docker 
+        state: started
+        enabled: true  
+    
+    - name: allow port 3306 
+      firewalld:
+        service: mysql
+        immediate: true
+        permanent: true 
+        state: enabled
+      
+    - name: Deployment of Dockerfile 
+      command: docker build -t web-by-docker /var/lib/jenkins/workspace/dep-ans-docker/web-tier/.
+
+    - name: application container
+      command: docker run -d -p 80:80 --name=webserver web-by-docker
+  
+
+    - name: Deployment of mysql container
+      command: docker build -t db-by-docker /var/lib/jenkins/workspace/dep-ans-docker/db/.
+
+    - name: mysql container 
+      command: docker run -d -p 3306:3306 --name=php db-by-docker
+
+    - name: testing the web
+      uri: 
+       url: http://node2:80
+       status_code: 200

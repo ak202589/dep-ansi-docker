@@ -1,0 +1,32 @@
+ # Database container with simple data for a Web application
+# Using centos 7 base image and MariahDB database
+# Version 1
+
+# Pull the rhel image from the local repository
+FROM centos:latest
+USER root
+
+MAINTAINER PrteekKumawat
+
+# Add Mariahdb software
+RUN yum -y install net-tools mariadb-server
+
+# Set up Mariahdb database
+ADD dm.sql /tmp/dm.sql
+RUN /usr/libexec/mariadb-prepare-db-dir
+RUN test -d /var/run/mariadb || mkdir /var/run/mariadb; \
+    chmod 0777 /var/run/mariadb; \
+    /usr/bin/mysqld_safe --basedir=/usr & \
+    sleep 10s && \
+    /usr/bin/mysqladmin -u root password 'redhat' && \
+    mysql --user=root --password=redhat -e 'create database dm' && \
+    mysql --user=root --password=redhat dm < /tmp/dm.sql && \
+    mysql --user=root --password=redhat -e "create user prateek@'%' identified by 'redhat';" && \ 
+    mysql --user=root --password=redhat -e 'grant ALL on *.* to prateek'  && \ 
+    mysqladmin shutdown --password=redhat
+
+# Expose Mysql port 3306
+EXPOSE 3306
+
+# Start the service
+CMD test -d /var/run/mariadb || mkdir /var/run/mariadb; chmod 0777 /var/run/mariadb;/usr/bin/mysqld_safe --basedir=/usr

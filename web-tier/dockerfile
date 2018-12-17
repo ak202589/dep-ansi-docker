@@ -1,0 +1,20 @@
+FROM centos:latest
+
+MAINTAINER PrateekKumawat
+
+RUN yum -y install httpd php php-mysql 
+#RUN sed -i -e 's~^DirectoryIndex \(.*\)$~DirectoryIndex \1 index.php~g' /etc/httpd/conf/httpd.conf
+RUN echo "<virtualhost *:80>" >> /etc/httpd/conf.d/web.conf
+RUN echo "documentroot /var/www/html" >> /etc/httpd/conf.d/web.conf
+RUN echo "</virtualhost>" >> /etc/httpd/conf.d/web.conf
+RUN echo "<Directory /var/www/html>" >> /etc/httpd/conf.d/web.conf
+RUN echo "require all granted" >> /etc/httpd/conf.d/web.conf
+RUN echo "DirectoryIndex index.php" >> /etc/httpd/conf.d/web.conf
+RUN echo "</directory>" >> /etc/httpd/conf.d/web.conf
+
+#RUN echo "DirectoryIndex index.php" >> /etc/httpd/conf/httpd.conf
+COPY clothStore  /var/www/html/
+
+CMD /usr/sbin/httpd -D FOREGROUND
+
+EXPOSE 80
